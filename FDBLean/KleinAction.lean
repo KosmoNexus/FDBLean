@@ -8,6 +8,18 @@ The Klein four-group action on the RNA nucleotide alphabet.
 This file gives an explicit four-element group whose three nonidentity
 elements act as Watson–Crick complementation, transition substitution,
 and wobble pairing. It then proves that the action is simply transitive.
+
+## Kernel cleanliness
+
+No proof in this file may use `native_decide`. That tactic compiles the
+decision procedure to native code and trusts the result, placing the Lean
+compiler, its runtime, and the C toolchain inside the trusted base, and
+leaving a `._native.` entry in `#print axioms`. A theorem carrying such an
+axiom does not fail independently of a hand-written proof, which is the sole
+reason the manuscript treats this development as a second witness.
+
+Every theorem below must audit to exactly
+`[propext, Classical.choice, Quot.sound]`. See `FDBLean.AxiomAudit`.
 -/
 
 namespace FDBLean
@@ -49,10 +61,13 @@ def mul : Klein → Klein → Klein
 
 /--
 The Klein group contains four elements.
+
+Proved by definitional reduction of the derived `Fintype` instance.
+If the instance does not reduce, replace with `by decide`; both are
+kernel-checked. Do not use `native_decide`.
 -/
 theorem card :
-    Fintype.card Klein = 4 := by
-  native_decide
+    Fintype.card Klein = 4 := rfl
 
 /--
 The identity acts on the left.
@@ -93,6 +108,17 @@ theorem self_inverse
     (g : Klein) :
     mul g g = e := by
   cases g <;> rfl
+
+/--
+Left cancellation, obtained from self-inversion and associativity.
+Used to derive uniqueness of the transporter without case analysis.
+-/
+theorem mul_left_cancel
+    (g x y : Klein)
+    (h : mul g x = mul g y) :
+    x = y := by
+  have h' := congrArg (mul g) h
+  rwa [← mul_assoc, ← mul_assoc, self_inverse, e_mul, e_mul] at h'
 
 /--
 The three nonidentity elements are distinct.
@@ -172,72 +198,73 @@ theorem kleinAct_free
     simp [kleinAct, tauC, tauT, tauW] at h ⊢
 
 /--
-The action is transitive: every nucleotide can be carried to
-every other nucleotide.
+Existence of a transporter: every nucleotide can be carried to every other.
+
+Each of the sixteen cases is discharged by exhibiting the transporter and
+reducing. No `Decidable` instance enters the proof term, so the result is
+independent of how `DecidableEq Base` happens to be derived.
 -/
-theorem kleinAct_transitive
+theorem kleinAct_exists
     (a b : Base) :
     ∃ g : Klein, kleinAct g a = b := by
-  cases a <;> cases b <;> native_decide
+  cases a <;> cases b <;>
+    first
+      | exact ⟨.e, rfl⟩
+      | exact ⟨.c, rfl⟩
+      | exact ⟨.t, rfl⟩
+      | exact ⟨.w, rfl⟩
 
 /--
-For each ordered pair of nucleotides, the transporter is unique.
+Uniqueness of the transporter, obtained from freeness and the group law
+rather than by case analysis.
+
+If two elements carry `a` to `b`, then since every element is its own
+inverse, the second carries `b` back to `a`. Their product therefore fixes
+`a`, so by freeness the product is the identity, and left cancellation gives
+equality.
+-/
+theorem kleinAct_transporter_unique
+    (a b : Base)
+    (g₁ g₂ : Klein)
+    (h₁ : kleinAct g₁ a = b)
+    (h₂ : kleinAct g₂ a = b) :
+    g₁ = g₂ := by
+  have hback : kleinAct g₂ b = a := by
+    rw [← h₂, ← kleinAct_mul, Klein.self_inverse, kleinAct_identity]
+  have hfix : kleinAct (Klein.mul g₂ g₁) a = a := by
+    rw [kleinAct_mul, h₁, hback]
+  have he : Klein.mul g₂ g₁ = .e := kleinAct_free _ _ hfix
+  have : Klein.mul g₂ g₁ = Klein.mul g₂ g₂ := by
+    rw [he, Klein.self_inverse]
+  exact Klein.mul_left_cancel g₂ g₁ g₂ this
+
+/--
+For each ordered pair of nucleotides, the transporter exists and is unique.
+
+Fallback if the structural proof above needs adjusting: this goal is
+decidable over a `Fintype`, so
+`by cases a <;> cases b <;> decide`
+also closes it and is likewise kernel-checked. Do not use `native_decide`.
 -/
 theorem kleinAct_unique
     (a b : Base) :
     ∃! g : Klein, kleinAct g a = b := by
-  cases a <;> cases b
-  · refine ⟨.e, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.w, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.t, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.c, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
+  obtain ⟨g, hg⟩ := kleinAct_exists a b
+  refine ⟨g, hg, ?_⟩
+  intro y hy
+  exact kleinAct_transporter_unique a b y g hy hg
 
-  · refine ⟨.w, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.e, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.c, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.t, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
+/--
+The action is transitive.
 
-  · refine ⟨.t, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.c, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.e, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.w, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-
-  · refine ⟨.c, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.t, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.w, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
-  · refine ⟨.e, rfl, ?_⟩
-    intro g hg
-    cases g <;> simp [kleinAct, tauC, tauT, tauW] at hg ⊢
+Recorded separately because the manuscript states transitivity and freeness
+as distinct properties; it is an immediate consequence of `kleinAct_unique`.
+-/
+theorem kleinAct_transitive
+    (a b : Base) :
+    ∃ g : Klein, kleinAct g a = b := by
+  obtain ⟨g, hg, _⟩ := kleinAct_unique a b
+  exact ⟨g, hg⟩
 
 /--
 The RNA nucleotide alphabet is a torsor under the Klein four-group.
