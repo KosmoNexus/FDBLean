@@ -4,4 +4,5 @@ import FDBLean.KleinAction
 import FDBLean.Profiles
 import FDBLean.Codon
 import FDBLean.ThreeNet
+import FDBLean.HomogeneousSplit
 import FDBLean.AxiomAudit
