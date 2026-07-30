@@ -219,6 +219,6 @@ coordinatewise wobble.
 theorem tauCCodon_comp_tauTCodon :
     tauCCodon ∘ tauTCodon = tauWCodon := by
   funext c i
-  rfl
+  exact congrFun tauC_comp_tauT_eq_tauW (c i)
 
 end FDBLean
