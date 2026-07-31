@@ -5,4 +5,6 @@ import FDBLean.Profiles
 import FDBLean.Codon
 import FDBLean.ThreeNet
 import FDBLean.HomogeneousSplit
+import FDBLean.Recoding
+import FDBLean.EditingTrichotomy
 import FDBLean.AxiomAudit
