@@ -17,4 +17,6 @@ import FDBLean.ErrorControl
 import FDBLean.AminoAcid
 import FDBLean.StandardCode
 import FDBLean.Charge
+import FDBLean.PositionalChargeLaw
+import FDBLean.MainTheoremChain
 import FDBLean.AxiomAudit
