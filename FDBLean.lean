@@ -8,4 +8,5 @@ import FDBLean.HomogeneousSplit
 import FDBLean.Recoding
 import FDBLean.EditingTrichotomy
 import FDBLean.OriginNarrowing
+import FDBLean.ComplementToWobble
 import FDBLean.AxiomAudit
