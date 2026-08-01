@@ -1,4 +1,6 @@
 import FDBLean.PositionalChargeLaw
+import FDBLean.FanoObstruction
+import FDBLean.PositionalChargeLaw
 
 /-!
 # FDBLean.MainTheoremChain
@@ -149,6 +151,18 @@ structure MainTheoremChain where
         RingReversingMismatch a b
       )
 
+  /--
+  Directed recoding generates only the coordinate-subspace lattice,
+  not the complete Fano incidence geometry.
+  -/
+  fanoObstruction :
+    FanoObstruction.reachedPoints.card = 3 ∧
+    FanoObstruction.reachedLines.card = 3 ∧
+    FanoObstruction.glMatrices.card = 168 ∧
+    FanoObstruction.preservingGL.card = 6 ∧
+    FanoObstruction.glMatrices.card -
+        FanoObstruction.preservingGL.card = 162
+
   /-- Position fixes the sign of charge change under A-to-G editing. -/
   positionalCharge :
     (
@@ -227,6 +241,15 @@ theorem mainTheoremChain :
     intro a b hMismatch
     exact formal_error_control_stratification
       a b hMismatch
+
+  fanoObstruction := by
+    exact ⟨
+      FanoObstruction.reachedPoints_card,
+      FanoObstruction.reachedLines_card,
+      FanoObstruction.glMatrices_card,
+      FanoObstruction.preservingGL_card,
+      FanoObstruction.unrealized_collineations
+    ⟩
 
   positionalCharge :=
     positional_charge_law

@@ -18,5 +18,6 @@ import FDBLean.AminoAcid
 import FDBLean.StandardCode
 import FDBLean.Charge
 import FDBLean.PositionalChargeLaw
+import FDBLean.FanoObstruction
 import FDBLean.MainTheoremChain
 import FDBLean.AxiomAudit
