@@ -3,16 +3,16 @@ import FDBLean.Recoding
 /-!
 # FDBLean.EditingTrichotomy
 
-The formal profile behavior of admissible directed `A → G` recoding.
+The formal profile behavior of admissible directed RNA deamination.
 
-At each codon position:
+At each edited codon position:
 
 * the `R` profile is invariant;
-* the `M` profile changes monotonically from `false` to `true`
-  exactly when editing occurs;
-* the `S` profile flips exactly at the edited positions.
+* the `M` profile changes from `false` to `true`;
+* the `S` profile flips.
 
-Thus the `S`-profile difference recovers the edit mask exactly.
+Thus the edit mask is recovered exactly from the pre/post `S`
+profile difference.
 -/
 
 namespace FDBLean
@@ -24,7 +24,7 @@ open Base
 -/
 
 /--
-Directed `A → G` recoding preserves the `R` profile.
+Directed recoding preserves the `R` profile.
 -/
 theorem rBit_recodeBase
     (b : Base) :
@@ -32,16 +32,29 @@ theorem rBit_recodeBase
   cases b <;> rfl
 
 /--
-The `S` profile changes under base recoding exactly when the
-source nucleotide is `A`.
+Directed recoding changes the `S` profile exactly when the source
+nucleotide is editable, namely `A` or `C`.
 -/
 theorem sBit_recodeBase_ne_iff
     (b : Base) :
-    sBit (recodeBase b) ≠ sBit b ↔ b = A := by
-  cases b <;> decide
+    sBit (recodeBase b) ≠ sBit b ↔
+      EditingSource b := by
+  cases b <;> simp [EditingSource, recodeBase, sBit]
 
 /--
-Base recoding cannot change the `M` profile from `true` to `false`.
+Directed recoding sends every editable source into the `true`
+class of the `M` profile.
+-/
+theorem mBit_recodeBase_source_true
+    (b : Base)
+    (hSource : EditingSource b) :
+    mBit (recodeBase b) = true := by
+  rcases hSource with hA | hC
+  · simp [hA, recodeBase, mBit]
+  · simp [hC, recodeBase, mBit]
+
+/--
+The `M` profile never changes from `true` to `false`.
 -/
 theorem mBit_recodeBase_monotone
     (b : Base) :
@@ -50,13 +63,11 @@ theorem mBit_recodeBase_monotone
   cases b <;> simp [mBit, recodeBase]
 
 /--
-The `M` profile after recoding is the Boolean disjunction of its
-original value with the proposition that the source was `A`.
+After recoding, the `M` profile is always `true`.
 -/
-theorem mBit_recodeBase_eq_or
+theorem mBit_recodeBase_true
     (b : Base) :
-    mBit (recodeBase b) =
-      Bool.or (mBit b) (decide (b = A)) := by
+    mBit (recodeBase b) = true := by
   cases b <;> rfl
 
 /-!
@@ -64,8 +75,7 @@ theorem mBit_recodeBase_eq_or
 -/
 
 /--
-Admissible recoding preserves the `R` profile at every codon
-position.
+Recoding preserves the `R` profile at every codon position.
 -/
 theorem editing_preserves_R
     (sites : CodonProfile)
@@ -95,13 +105,14 @@ theorem editing_M_exact
   | false =>
       simp [recodeCodon, hSite]
   | true =>
-      have hA : c i = A :=
+      have hSource : EditingSource (c i) :=
         hAdmissible i hSite
-      simp [recodeCodon, hSite, hA, recodeBase, mBit]
+      rw [recodeCodon_at_selected sites c i hSite]
+      rw [mBit_recodeBase_source_true (c i) hSource]
+      simp
 
 /--
-Admissible editing is monotone in the `M` profile: an `M` bit that
-is already true remains true.
+Admissible editing is monotone in the `M` profile.
 -/
 theorem editing_M_monotone
     (sites : CodonProfile)
@@ -129,9 +140,12 @@ theorem editing_S_exact
   | false =>
       simp [recodeCodon, hSite]
   | true =>
-      have hA : c i = A :=
+      have hSource : EditingSource (c i) :=
         hAdmissible i hSite
-      simp [recodeCodon, hSite, hA, recodeBase, sBit]
+      rw [recodeCodon_at_selected sites c i hSite]
+      rcases hSource with hA | hC
+      · simp [hA, recodeBase, sBit]
+      · simp [hC, recodeBase, sBit]
 
 /--
 The `S` profile changes exactly at the admissibly edited positions.
@@ -147,9 +161,12 @@ theorem editing_S_changes_iff
   | false =>
       simp [recodeCodon, hSite]
   | true =>
-      have hA : c i = A :=
+      have hSource : EditingSource (c i) :=
         hAdmissible i hSite
-      simp [recodeCodon, hSite, hA, recodeBase, sBit]
+      rw [recodeCodon_at_selected sites c i hSite]
+      rcases hSource with hA | hC
+      · simp [hA, recodeBase, sBit]
+      · simp [hC, recodeBase, sBit]
 
 /--
 The edit mask is recovered exactly as the coordinatewise XOR
