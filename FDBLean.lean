@@ -14,4 +14,7 @@ import FDBLean.RNADNATransport
 import FDBLean.TaggedNucleotide
 import FDBLean.PairClassification
 import FDBLean.ErrorControl
+import FDBLean.AminoAcid
+import FDBLean.StandardCode
+import FDBLean.Charge
 import FDBLean.AxiomAudit
