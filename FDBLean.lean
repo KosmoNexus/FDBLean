@@ -12,4 +12,5 @@ import FDBLean.ComplementToWobble
 import FDBLean.DNAAlphabet
 import FDBLean.RNADNATransport
 import FDBLean.TaggedNucleotide
+import FDBLean.PairClassification
 import FDBLean.AxiomAudit
