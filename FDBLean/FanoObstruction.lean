@@ -97,6 +97,52 @@ def vzero : Vec where
   x0 := false
   x1 := false
   x2 := false
+/-- First standard basis vector of `F₂³`. -/
+def e0 : Vec where
+  x0 := true
+  x1 := false
+  x2 := false
+
+/-- Second standard basis vector of `F₂³`. -/
+def e1 : Vec where
+  x0 := false
+  x1 := true
+  x2 := false
+
+/-- Third standard basis vector of `F₂³`. -/
+def e2 : Vec where
+  x0 := false
+  x1 := false
+  x2 := true
+
+/--
+First diagonal point of the coordinate projective frame:
+`e0 + e1 = 110`.
+-/
+def diagonal01 : Vec :=
+  vadd e0 e1
+
+/--
+Second diagonal point of the coordinate projective frame:
+`e0 + e2 = 101`.
+-/
+def diagonal02 : Vec :=
+  vadd e0 e2
+
+/--
+Third diagonal point of the coordinate projective frame:
+`e1 + e2 = 011`.
+-/
+def diagonal12 : Vec :=
+  vadd e1 e2
+
+/--
+The diagonal line of the selected projective frame.
+
+Its nonzero vectors are `110`, `101`, and `011`.
+-/
+def frameDiagonal : Finset Vec :=
+  {vzero, diagonal01, diagonal02, diagonal12}
 
 /-- A concrete finite subset of `F₂³`. -/
 abbrev Sub := Finset Vec
@@ -141,6 +187,41 @@ theorem points_card :
 /-- `PG(2,2)` has seven projective lines. -/
 theorem lines_card :
     (subsOfDim 2).card = 7 := by
+  decide
+/-!
+## The diagonal line of the coordinate frame
+-/
+
+/--
+The three diagonal points sum to zero in characteristic two.
+Equivalently, any two sum to the third.
+-/
+theorem diagonal_points_sum_zero :
+    vadd diagonal01
+      (vadd diagonal02 diagonal12) =
+        vzero := by
+  rfl
+
+/--
+The frame diagonal is closed under Boolean-vector addition.
+-/
+theorem frameDiagonal_isSubspace :
+    isSubspace frameDiagonal := by
+  decide
+
+/--
+The frame diagonal has four vectors.
+-/
+theorem frameDiagonal_card :
+    frameDiagonal.card = 4 := by
+  decide
+
+/--
+The frame diagonal is one of the seven projective lines of
+`PG(2,2)`.
+-/
+theorem frameDiagonal_isLine :
+    frameDiagonal ∈ subsOfDim 2 := by
   decide
 
 /-!
@@ -367,6 +448,48 @@ theorem lines_missed :
     ((subsOfDim 2) \ reachedLines).card = 4 := by
   set_option maxHeartbeats 2000000 in
     decide
+/--
+The diagonal line is not a coordinate subspace.
+
+For example, it contains `110`, but erasing either of its nonzero
+coordinates produces a standard basis vector, which the diagonal
+line does not contain.
+-/
+theorem frameDiagonal_not_coordinate :
+    ¬ isCoordinate frameDiagonal := by
+  decide
+
+/--
+The edit dynamics cannot generate the diagonal line of the selected
+projective frame.
+-/
+theorem frameDiagonal_not_reached :
+    frameDiagonal ∉ reached := by
+  intro h
+  have hCoordinate :
+      isCoordinate frameDiagonal :=
+    reached_all_coordinate frameDiagonal h
+  exact frameDiagonal_not_coordinate hCoordinate
+
+/--
+In particular, the frame diagonal is not among the reachable
+projective lines.
+-/
+theorem frameDiagonal_not_reachedLine :
+    frameDiagonal ∉ reachedLines := by
+  intro h
+  exact frameDiagonal_not_reached
+    (Finset.mem_filter.mp h).1
+
+/--
+The frame diagonal is one of the four projective lines missed by
+the recoding dynamics.
+-/
+theorem frameDiagonal_mem_missedLines :
+    frameDiagonal ∈
+      ((subsOfDim 2) \ reachedLines) := by
+  exact Finset.mem_sdiff.mpr
+    ⟨frameDiagonal_isLine, frameDiagonal_not_reachedLine⟩
 
 /-!
 ## Concrete Boolean matrices

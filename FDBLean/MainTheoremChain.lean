@@ -1,4 +1,4 @@
-import FDBLean.PositionalChargeLaw
+import FDBLean.ForcedAlphabet
 import FDBLean.FanoObstruction
 import FDBLean.PositionalChargeLaw
 
@@ -14,16 +14,26 @@ object.
 
 The ordering records the architecture of the program:
 
-1. nucleotide Klein torsor;
-2. profile XOR geometry;
-3. pairwise-transverse codon profiles;
-4. 22/42 codon decomposition;
-5. directed editing trichotomy and exact edit recovery;
-6. absorbing alphabet and origin narrowing;
-7. complement-to-wobble transport;
-8. RNA/DNA structural transport;
-9. mismatch and error-control stratification;
-10. positional amino-acid charge law.
+1. chemically specified binary profiles and the forced four-state alphabet;
+2. exhaustive classification of the three fixed-point-free involutions;
+3. nucleotide Klein torsor;
+4. profile XOR geometry;
+5. pairwise-transverse codon profiles;
+6. 22/42 codon decomposition;
+7. directed editing trichotomy and exact edit recovery;
+8. absorbing alphabet and origin narrowing;
+9. complement-to-wobble transport;
+10. RNA/DNA structural transport;
+11. mismatch and error-control stratification;
+12. edit-reachability obstruction to the full Fano incidence geometry;
+13. positional amino-acid charge law.
+
+The ring-class, hydrogen-bond-class, and amino/keto profiles are
+defined independently from their respective chemical classifications.
+Likewise, Watson–Crick complementation, transition substitution, and
+wobble pairing are defined independently from their biochemical
+pairing tables. Lean subsequently verifies the XOR and composition
+identities rather than assuming them by definition.
 
 The standard genetic code and amino-acid charge convention remain
 declared empirical inputs. Lean verifies the consequences of those
@@ -40,6 +50,25 @@ The principal results of the FDB nucleotide construction, collected
 without collapsing their distinct epistemic roles.
 -/
 structure MainTheoremChain where
+
+  /--
+  The independently defined chemical profiles occupy all four binary
+  `(R,S)` states, while the independently defined `M` profile is their
+  XOR. Every fixed-point-free involution of the four-base alphabet is
+  one of the three chemically named relations.
+  -/
+  forcedAlphabet :
+    (
+      Function.Bijective
+        (fun b : Base => (rBit b, sBit b)) ∧
+      ∀ b : Base,
+        Bool.xor (rBit b) (sBit b) = mBit b
+    ) ∧
+    (
+      ∀ f : Base → Base,
+        IsFixedPointFreeInvolution f →
+          f = tauC ∨ f = tauT ∨ f = tauW
+    )
 
   /-- The RNA alphabet is a torsor under the Klein four-group. -/
   nucleotideTorsor :
@@ -151,9 +180,11 @@ structure MainTheoremChain where
         RingReversingMismatch a b
       )
 
-  /--
+    /--
   Directed recoding generates only the coordinate-subspace lattice,
-  not the complete Fano incidence geometry.
+  not the complete Fano incidence geometry. In particular, the
+  diagonal line of the selected projective frame is a genuine
+  projective line but is not edit reachable.
   -/
   fanoObstruction :
     FanoObstruction.reachedPoints.card = 3 ∧
@@ -161,7 +192,11 @@ structure MainTheoremChain where
     FanoObstruction.glMatrices.card = 168 ∧
     FanoObstruction.preservingGL.card = 6 ∧
     FanoObstruction.glMatrices.card -
-        FanoObstruction.preservingGL.card = 162
+        FanoObstruction.preservingGL.card = 162 ∧
+    FanoObstruction.frameDiagonal ∈
+        FanoObstruction.subsOfDim 2 ∧
+    FanoObstruction.frameDiagonal ∉
+        FanoObstruction.reachedLines
 
   /-- Position fixes the sign of charge change under A-to-G editing. -/
   positionalCharge :
@@ -203,11 +238,18 @@ The complete theorem chain presently established in FDBLean.
 -/
 theorem mainTheoremChain :
     MainTheoremChain where
-  nucleotideTorsor :=
-    nucleotide_alphabet_is_klein_torsor
 
-  profileXor :=
-    relative_profile_xor_law
+  forcedAlphabet := by
+    exact ⟨
+      chemical_profile_rank_two,
+      fixed_point_free_involution_classification
+    ⟩
+
+  nucleotideTorsor := by
+    exact nucleotide_alphabet_is_klein_torsor
+
+  profileXor := by
+    exact relative_profile_xor_law
 
   codonThreeNet :=
     codon_profiles_pairwise_transverse
@@ -248,7 +290,9 @@ theorem mainTheoremChain :
       FanoObstruction.reachedLines_card,
       FanoObstruction.glMatrices_card,
       FanoObstruction.preservingGL_card,
-      FanoObstruction.unrealized_collineations
+      FanoObstruction.unrealized_collineations,
+      FanoObstruction.frameDiagonal_isLine,
+      FanoObstruction.frameDiagonal_not_reachedLine
     ⟩
 
   positionalCharge :=
