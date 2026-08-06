@@ -625,7 +625,164 @@ theorem preservingGL_card :
   set_option maxHeartbeats 10000000 in
   set_option maxRecDepth 100000 in
     decide
+/-!
+## Stabilizer of the selected projective frame
 
+Over `F₂`, each projective point has a unique nonzero vector
+representative. We may therefore represent a four-point projective
+frame directly as a finite set of vectors.
+-/
+
+/-- The fourth point `111` of the selected projective frame. -/
+def framePoint : Vec :=
+  vadd e0 (vadd e1 e2)
+
+/--
+The selected projective frame:
+
+`{100, 010, 001, 111}`.
+-/
+def selectedFrame : Finset Vec :=
+  {e0, e1, e2, framePoint}
+
+/-- The selected frame contains four distinct projective points. -/
+theorem selectedFrame_card :
+    selectedFrame.card = 4 := by
+  decide
+
+/-- The fourth frame point is the sum of the three basis points. -/
+theorem framePoint_eq_sum_basis :
+    framePoint = vadd e0 (vadd e1 e2) := by
+  rfl
+
+/--
+A matrix preserves the selected frame setwise when it permutes its
+four projective points.
+-/
+def preservesSelectedFrame
+    (M : Matrix3) :
+    Prop :=
+  selectedFrame.image (applyLin M) = selectedFrame
+
+instance preservesSelectedFrameDecidable
+    (M : Matrix3) :
+    Decidable (preservesSelectedFrame M) := by
+  unfold preservesSelectedFrame
+  infer_instance
+
+/--
+The invertible matrices preserving the selected frame setwise.
+-/
+def frameStabilizer :
+    Finset Matrix3 :=
+  glMatrices.filter preservesSelectedFrame
+
+/--
+The selected-frame stabilizer contains exactly 24 matrices.
+-/
+theorem frameStabilizer_card :
+    frameStabilizer.card = 24 := by
+  set_option maxHeartbeats 15000000 in
+  set_option maxRecDepth 100000 in
+    decide
+
+/--
+Every matrix in the frame stabilizer is an element of `GL(3,F₂)`.
+-/
+theorem frameStabilizer_subset_glMatrices :
+    ∀ M ∈ frameStabilizer,
+      M ∈ glMatrices := by
+  intro M hM
+  exact (Finset.mem_filter.mp hM).1
+
+/--
+The subgroup of the frame stabilizer fixing the fourth frame point
+`111`.
+-/
+def framePointStabilizer :
+    Finset Matrix3 :=
+  frameStabilizer.filter
+    (fun M => applyLin M framePoint = framePoint)
+
+/--
+The point stabilizer inside the selected-frame stabilizer has order 6.
+-/
+theorem framePointStabilizer_card :
+    framePointStabilizer.card = 6 := by
+  set_option maxHeartbeats 15000000 in
+  set_option maxRecDepth 100000 in
+    decide
+
+/--
+Every edit-reachability-preserving matrix preserves the selected
+frame and fixes its fourth point.
+-/
+theorem preservingGL_subset_framePointStabilizer :
+    ∀ M ∈ preservingGL,
+      M ∈ framePointStabilizer := by
+  set_option maxHeartbeats 20000000 in
+  set_option maxRecDepth 100000 in
+    decide
+
+/--
+Conversely, every selected-frame symmetry fixing `111` preserves the
+complete edit-reachable coordinate lattice.
+-/
+theorem framePointStabilizer_subset_preservingGL :
+    ∀ M ∈ framePointStabilizer,
+      M ∈ preservingGL := by
+  set_option maxHeartbeats 20000000 in
+  set_option maxRecDepth 100000 in
+    decide
+
+/--
+The edit-reachability stabilizer is exactly the stabilizer of `111`
+inside the selected-frame stabilizer.
+-/
+theorem preservingGL_eq_framePointStabilizer :
+    preservingGL = framePointStabilizer := by
+  apply Finset.Subset.antisymm
+  · intro M hM
+    exact preservingGL_subset_framePointStabilizer M hM
+  · intro M hM
+    exact framePointStabilizer_subset_preservingGL M hM
+
+/--
+The exact finite-set stabilizer chain has cardinalities
+`6 ⊂ 24 ⊂ 168`.
+-/
+theorem frame_stabilizer_chain :
+    preservingGL ⊆ frameStabilizer ∧
+    frameStabilizer ⊆ glMatrices ∧
+    preservingGL.card = 6 ∧
+    frameStabilizer.card = 24 ∧
+    glMatrices.card = 168 := by
+  constructor
+  · intro M hM
+    have hPoint :
+        M ∈ framePointStabilizer :=
+      preservingGL_subset_framePointStabilizer M hM
+    exact (Finset.mem_filter.mp hPoint).1
+  constructor
+  · exact frameStabilizer_subset_glMatrices
+  exact ⟨
+    preservingGL_card,
+    frameStabilizer_card,
+    glMatrices_card
+  ⟩
+
+/--
+The two cardinality steps have indices four and seven.
+-/
+theorem frame_stabilizer_cardinality_indices :
+    frameStabilizer.card / preservingGL.card = 4 ∧
+    glMatrices.card / frameStabilizer.card = 7 := by
+  rw [
+    preservingGL_card,
+    frameStabilizer_card,
+    glMatrices_card
+  ]
+  decide
 /--
 The remaining 162 collineations do not preserve the biological
 reachability structure.

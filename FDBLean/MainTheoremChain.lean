@@ -186,7 +186,7 @@ structure MainTheoremChain where
   diagonal line of the selected projective frame is a genuine
   projective line but is not edit reachable.
   -/
-  fanoObstruction :
+    fanoObstruction :
     FanoObstruction.reachedPoints.card = 3 ∧
     FanoObstruction.reachedLines.card = 3 ∧
     FanoObstruction.glMatrices.card = 168 ∧
@@ -196,7 +196,11 @@ structure MainTheoremChain where
     FanoObstruction.frameDiagonal ∈
         FanoObstruction.subsOfDim 2 ∧
     FanoObstruction.frameDiagonal ∉
-        FanoObstruction.reachedLines
+        FanoObstruction.reachedLines ∧
+    FanoObstruction.frameStabilizer.card = 24 ∧
+    FanoObstruction.framePointStabilizer.card = 6 ∧
+    FanoObstruction.preservingGL =
+        FanoObstruction.framePointStabilizer
 
   /-- Position fixes the sign of charge change under A-to-G editing. -/
   positionalCharge :
@@ -292,7 +296,10 @@ theorem mainTheoremChain :
       FanoObstruction.preservingGL_card,
       FanoObstruction.unrealized_collineations,
       FanoObstruction.frameDiagonal_isLine,
-      FanoObstruction.frameDiagonal_not_reachedLine
+      FanoObstruction.frameDiagonal_not_reachedLine,
+      FanoObstruction.frameStabilizer_card,
+      FanoObstruction.framePointStabilizer_card,
+      FanoObstruction.preservingGL_eq_framePointStabilizer
     ⟩
 
   positionalCharge :=
