@@ -7,9 +7,12 @@ mathematical consequence and an empirical biological assumption inspectable.
 
 **Branch:** `forced-alphabet`
 **Toolchain:** Lean 4.31.0 / Mathlib `v4.31.0`
-**Source status (November 26, 2026):** 321 named theorem declarations across
-23 theorem-bearing modules; full `lake build` succeeds on this branch. The
-historical 293-theorem `main` snapshot is preserved in the claim-status index.
+**Source status (November 26, 2026):** 353 named theorem declarations across
+24 theorem-bearing modules on `forced-alphabet` (321 earlier declarations plus
+32 in `TransformationLaws.lean`). The pre-extension project was built with
+Lean 4.31.0, and the new module compiled locally with six clean axiom audits;
+a fresh full build of the published commit remains a separate reproducibility check.
+The historical 293-theorem `main` snapshot is preserved in the claim-status index.
 
 ## Principal formal results
 
@@ -19,7 +22,7 @@ historical 293-theorem `main` snapshot is preserved in the claim-status index.
 | Forced involutions | All fixed-point-free involutions of the four-element alphabet are exactly the three named involutions; they form the Klein four-group together with the identity. |
 | Nucleotide torsor | The Klein action is free and transitive. |
 | Codon geometry | The 64 codons carry pairwise transverse profile partitions; the homogeneous/generic split is exactly 22/42. |
-| Directed recoding | Admissible editing yields `R' = R`, `M' = M OR E`, `S' = S XOR E`, with exact recovery of the edit mask. |
+| Directed recoding | At any origin, admissible editing gives `R' = R`, `M' = M XOR E`, `S' = S XOR E`; both `M` and `S` differences recover the edit mask. The origin-relative `M` law is `M' = M AND NOT E` at `G/U` (monotone descent), and `M' = M OR E` at `A/C` (monotone ascent). |
 | RNA/DNA correspondence | A specified `U ↔ T` transport preserves the modeled involutions. |
 | Genetic-code consequences | With the standard genetic code and charge conventions as explicit inputs, position-dependent `A → G` edits obey the formal charge-sign law. |
 | Fano obstruction | Directed editing generates only the eight coordinate subspaces of `F₂³`, not the full seven-point/seven-line Fano incidence geometry. |
@@ -59,10 +62,15 @@ lake env lean FDBLean/MainTheoremChain.lean
 
 # Inspect explicit axiom dependencies
 lake env lean FDBLean/AxiomAudit.lean
+
+# Inspect the six dedicated transformation-law audits
+lake env lean FDBLean/TransformationLaws.lean
 ```
 
 The axiom audit prints the dependencies of selected public theorems, including
-all ten forced-alphabet theorems and the eighteen new Fano/frame theorems.
+all ten forced-alphabet theorems and the eighteen Fano/frame extensions. The
+new transformation-law module prints six additional headline audits. The
+standalone `AxiomAudit.lean` is not yet an exhaustive audit of all 353 declarations.
 Expected logical dependencies are at most `propext`, `Classical.choice`, and
 `Quot.sound`. Any `sorryAx`, `Lean.ofReduceBool`, or native compiler-trust
 axiom would require investigation. A successful build and a theorem's axiom
@@ -77,7 +85,9 @@ provenance are distinct checks.
 - `FDBLean/Codon.lean`, `ThreeNet.lean`, `HomogeneousSplit.lean`:
   codon profiles and the 22/42 decomposition.
 - `FDBLean/Recoding.lean`, `EditingTrichotomy.lean`, `OriginNarrowing.lean`:
-  directed recoding and exactly recoverable edit masks.
+  directed recoding and the original A-anchored law.
+- `FDBLean/TransformationLaws.lean`: all-origin XOR laws, G/U meet and A/C join
+  polarity, two exact mask-recovery formulas, and terminal zero-M profile.
 - `FDBLean/StandardCode.lean`, `Charge.lean`, `PositionalChargeLaw.lean`:
   genetic-code input and conditional charge consequences.
 - `FDBLean/FanoObstruction.lean`: coordinate-reachability obstruction
