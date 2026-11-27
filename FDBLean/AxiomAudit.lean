@@ -1,119 +1,96 @@
-import FDBLean.Base
-import FDBLean.Involutions
-import FDBLean.KleinAction
+import FDBLean.MainTheoremChain
 
 /-!
-# FDBLean.AxiomAudit
+# FDBLean.AxiomAudit — forced-alphabet branch
 
-Kernel-cleanliness audit for the whole development.
+This file audits the capstone and selected public theorems, especially
+all ten new theorems in `ForcedAlphabet.lean` and the eighteen additions
+to `FanoObstruction.lean` on branch `forced-alphabet`.
 
-## What this file is for
+Read each `#print axioms` result. The acceptable dependencies are the
+standard Lean logical axioms `propext`, `Classical.choice`, `Quot.sound`
+(or fewer). No result should contain `sorryAx`, `Lean.ofReduceBool`,
+`Lean.trustCompiler`, or native-decision trust dependencies.
 
-Every exported theorem in FDBLean must depend on at most
+This is an explicitly named theorem audit, not a claim that a successful
+`lake build` alone establishes the axiom provenance of every declaration.
 
-  `[propext, Classical.choice, Quot.sound]`
-
-and nothing else. Those three are the standard axioms of Lean's classical
-foundation and are checked by the kernel. Many results here depend on none
-of them, closing by reduction alone; that is stronger still.
-
-Any of the following appearing in an axiom list is a defect, not a style
-preference:
-
-* `Lean.ofReduceBool`
-* `Lean.trustCompiler`
-* any axiom whose name contains `._native.`
-
-These are the signature of `native_decide`, which compiles the decision
-procedure to native code and accepts the result on the word of the compiler
-rather than by kernel reduction. It places the Lean compiler, its runtime,
-and the C toolchain inside the trusted base.
-
-## Why this matters more here than in an ordinary Lean project
-
-The manuscript claims that a machine-verified proof is an *independent*
-witness, one that fails differently from a hand-checked proof. A theorem
-carrying `ofReduceBool` fails the way a compiler bug fails, which is not
-independent of anything, and it is the first thing a referee who knows Lean
-will check on the headline result.
-
-Nothing in this development needs `native_decide`. The largest object is a
-64-element codon space; the kernel reduces everything at that scale without
-complaint. If a proof appears to require it, the proof is wrong, not the
-budget. Raise `maxHeartbeats` or restructure the argument.
-
-## A note on syntax
-
-`#print axioms` is a command, not a declaration, so it cannot carry a
-`/-- ... -/` doc-comment. Use plain `--` comments between entries.
-
-## How to use
-
-Build this module and read the output. No line may show a `._native.` entry.
-Add one `#print axioms` line per exported theorem as each new module lands,
-before the theorem is cited in the manuscript.
+The chemical profile tables, the choice of four RNA bases, the named
+biochemical pairings, and the empirical standard genetic code remain
+inputs to the model, not consequences of finite group theory.
 -/
 
 namespace FDBLean
 
--- ---------------------------------------------------------------------------
--- Group structure
--- ---------------------------------------------------------------------------
-
+-- Foundation: four-base algebra and action.
+#print axioms Base.card_base
 #print axioms Klein.card
-#print axioms Klein.e_mul
-#print axioms Klein.mul_e
 #print axioms Klein.mul_assoc
 #print axioms Klein.mul_comm
-#print axioms Klein.self_inverse
-#print axioms Klein.mul_left_cancel
-#print axioms Klein.c_ne_t
-#print axioms Klein.c_ne_w
-#print axioms Klein.t_ne_w
-#print axioms Klein.c_mul_t
-
--- ---------------------------------------------------------------------------
--- The action on the nucleotide alphabet
--- ---------------------------------------------------------------------------
-
 #print axioms kleinAct_identity
 #print axioms kleinAct_mul
-#print axioms kleinAct_c
-#print axioms kleinAct_t
-#print axioms kleinAct_w
 #print axioms kleinAct_free
-#print axioms kleinAct_exists
-#print axioms kleinAct_transporter_unique
-#print axioms kleinAct_unique
 #print axioms kleinAct_transitive
-
--- ---------------------------------------------------------------------------
--- Manuscript claims
--- ---------------------------------------------------------------------------
-
--- Theorem 1. The headline result, and the one a reviewer is most likely to
--- audit directly.
 #print axioms nucleotide_alphabet_is_klein_torsor
-
--- The composition law tau_c . tau_t = tau_w, recovered from the action.
 #print axioms biochemical_composition_from_action
 
--- ---------------------------------------------------------------------------
--- TODO as modules land, one line each
--- ---------------------------------------------------------------------------
---   Profiles.lean            profile_xor_law, tauT_preserves_R,
---                            tauC_preserves_S, tauW_preserves_M
---   Codon.lean               codon_card
---   ThreeNet.lean            fiber_card, pairwise_transverse
---   HomogeneousSplit.lean    homogeneous_card_22, generic_card_42
---   Recoding.lean            R_invariant, M_monotone
---   EditingTrichotomy.lean   S_difference_eq_edit_indicator, absorbing_set
---   OriginNarrowing.lean     origin_narrowing
---   ComplementToWobble.lean  complement_to_wobble
---   RNADNATransport.lean     transport_iso, decomposition_preserved
---   PairClassification.lean  pair_partition, ring_class_split
---   ErrorControl.lean        code_injective, min_distance_two
---   PositionalChargeLaw.lean charge_law_pos1, charge_law_pos2,
---                            charge_law_pos3, charge_edges_exhaustive
+-- Forced alphabet: all ten new theorem declarations.
+#print axioms rs_profile_surjective
+#print axioms rs_profile_bijective
+#print axioms chemical_profile_rank_two
+#print axioms tauC_preserves_exactly_S
+#print axioms tauT_preserves_exactly_R
+#print axioms tauW_preserves_exactly_M
+#print axioms named_relations_are_fixed_point_free_involutions
+#print axioms fixed_point_free_involution_classification
+#print axioms no_fourth_fixed_point_free_involution
+#print axioms canonical_alphabet_forces_klein_structure
+
+-- Some main pre-existing biological theorem interfaces.
+#print axioms profile_xor_law
+#print axioms card_codon
+#print axioms homogeneousUnion_card
+#print axioms genericCodons_card
+#print axioms recodeBase_tauC_eq_tauW_recodeBase
+#print axioms standardCode_exhaustive
+#print axioms positional_charge_law
+
+-- Fano geometry and the previously established obstruction.
+#print axioms FanoObstruction.points_card
+#print axioms FanoObstruction.lines_card
+#print axioms FanoObstruction.reached_card
+#print axioms FanoObstruction.reachedPoints_card
+#print axioms FanoObstruction.reachedLines_card
+#print axioms FanoObstruction.lines_missed
+#print axioms FanoObstruction.glMatrices_card
+#print axioms FanoObstruction.preservingGL_card
+#print axioms FanoObstruction.fano_obstruction_summary
+
+-- New Fano diagonal: four added theorems.
+#print axioms FanoObstruction.diagonal_points_sum_zero
+#print axioms FanoObstruction.frameDiagonal_isSubspace
+#print axioms FanoObstruction.frameDiagonal_card
+#print axioms FanoObstruction.frameDiagonal_isLine
+
+-- New Fano reachability counterexample: four added theorems.
+#print axioms FanoObstruction.frameDiagonal_not_coordinate
+#print axioms FanoObstruction.frameDiagonal_not_reached
+#print axioms FanoObstruction.frameDiagonal_not_reachedLine
+#print axioms FanoObstruction.frameDiagonal_mem_missedLines
+
+-- New selected-frame characterization: ten added theorems.
+#print axioms FanoObstruction.selectedFrame_card
+#print axioms FanoObstruction.framePoint_eq_sum_basis
+#print axioms FanoObstruction.frameStabilizer_card
+#print axioms FanoObstruction.frameStabilizer_subset_glMatrices
+#print axioms FanoObstruction.framePointStabilizer_card
+#print axioms FanoObstruction.preservingGL_subset_framePointStabilizer
+#print axioms FanoObstruction.framePointStabilizer_subset_preservingGL
+#print axioms FanoObstruction.preservingGL_eq_framePointStabilizer
+#print axioms FanoObstruction.frame_stabilizer_chain
+#print axioms FanoObstruction.frame_stabilizer_cardinality_indices
+
+-- Capstone: one typed theorem collecting the model's central results.
+#print axioms mainTheoremChain
 
 end FDBLean
