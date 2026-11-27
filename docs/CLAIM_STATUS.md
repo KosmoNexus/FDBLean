@@ -14,14 +14,14 @@ FDBLean. It distinguishes:
 ## Repository summary
 
 - Lean toolchain: Lean 4.31.0
-- Named theorem and lemma declarations: **321** (293 on `main`, plus 28 on `forced-alphabet`)
-- Theorem-bearing modules: **23** (including `ForcedAlphabet.lean`)
+- Named theorem and lemma declarations: **353** (293 on `main`, 28 in the earlier `forced-alphabet` extension, and 32 in `TransformationLaws.lean`)
+- Theorem-bearing modules: **24** (including `ForcedAlphabet.lean` and `TransformationLaws.lean`)
 - `sorry`: **0**
 - `native_decide`: **0**
 - Capstone theorem object: `FDBLean.mainTheoremChain`
 - Negative-result module: `FDBLean.FanoObstruction`
-- Current branch: `forced-alphabet` (two commits ahead of `main` at the starting snapshot)
-- Verification: `lake build` succeeded on 26 November 2026; updated axiom audit should be run separately
+- Current branch: `forced-alphabet` (extends the historical `main` snapshot)
+- Verification: the prior branch built cleanly, and `TransformationLaws.lean` compiled locally with six clean `#print axioms` reports; a fresh full build of the published commit should be recorded separately
 
 ## Machine-checked formal results
 
@@ -65,11 +65,14 @@ FDBLean. It distinguishes:
   - G → G
   - U → U
 - Recoding is idempotent.
-- Under admissible editing:
-  - R is invariant.
-  - M changes monotonically according to `M' = M OR E`.
-  - S changes according to `S' = S XOR E`.
-- The edit mask is recovered exactly from the pre/post S-profile difference.
+- Under admissible editing at every origin:
+  - `R' = R` (invariant).
+  - `M' = M XOR E` and `S' = S XOR E` (polarity-free form).
+  - The edit mask is recovered exactly from either pre/post `M` or `S` profile difference.
+- At origin `G` or `U`, `M' = M AND NOT E` (meet / monotone descent to zero).
+- At origin `A` or `C`, `M' = M OR E` (join / monotone ascent to one).
+- The meet/join formulas apply to every edit mask; XOR recovery requires admissible editing.
+- The older unqualified `M' = M OR E` theorem remains valid in its original A-anchored coordinates.
 - The absorbing alphabet is exactly `{G,U}`.
 - The absorbing codons are exactly `{G,U}^3`.
 - The zero-M origin narrows exactly to `G` or `U`.
@@ -899,6 +902,46 @@ longer current because the source file was extended.
 320. `frame_stabilizer_chain` — `FanoObstruction.lean`
 321. `frame_stabilizer_cardinality_indices` — `FanoObstruction.lean`
 
+## Corrected transformation-law extension (322–353)
+
+The following 32 additional declarations formalize origin-relative editing
+and exact mask recovery, including the distinct G/U and A/C polarities.
+Their existence in source and earlier successful local compilation are
+recorded separately from a full rebuild of the published Git revision.
+
+322. `mBit_source_false` — `TransformationLaws.lean`
+323. `rBitAt_recodeBase` — `TransformationLaws.lean`
+324. `sBitAt_recodeBase_source` — `TransformationLaws.lean`
+325. `mBitAt_recodeBase_source` — `TransformationLaws.lean`
+326. `mBitAt_G_recodeBase` — `TransformationLaws.lean`
+327. `mBitAt_U_recodeBase` — `TransformationLaws.lean`
+328. `mBitAt_A_recodeBase` — `TransformationLaws.lean`
+329. `mBitAt_C_recodeBase` — `TransformationLaws.lean`
+330. `mBitAt_G_source_true` — `TransformationLaws.lean`
+331. `mBitAt_U_source_true` — `TransformationLaws.lean`
+332. `editing_preserves_R_at` — `TransformationLaws.lean`
+333. `editing_S_xor_at` — `TransformationLaws.lean`
+334. `editing_M_xor` — `TransformationLaws.lean`
+335. `editing_M_xor_at` — `TransformationLaws.lean`
+336. `editing_M_meet_at_G` — `TransformationLaws.lean`
+337. `editing_M_meet_at_U` — `TransformationLaws.lean`
+338. `editing_M_meet_at_admissible` — `TransformationLaws.lean`
+339. `edit_support_subset_M_support_at_G` — `TransformationLaws.lean`
+340. `edit_support_subset_M_support_at_U` — `TransformationLaws.lean`
+341. `editing_M_join_at_A` — `TransformationLaws.lean`
+342. `editing_M_join_at_C` — `TransformationLaws.lean`
+343. `editing_M_join_at_excluded` — `TransformationLaws.lean`
+344. `M_meet_form_fails_at_A` — `TransformationLaws.lean`
+345. `M_join_form_fails_at_G` — `TransformationLaws.lean`
+346. `editing_mask_recovered_by_M` — `TransformationLaws.lean`
+347. `editing_mask_recovered_by_M_at` — `TransformationLaws.lean`
+348. `editing_mask_recovered_by_S_at` — `TransformationLaws.lean`
+349. `transformation_laws_at` — `TransformationLaws.lean`
+350. `edit_mask_recovered_at` — `TransformationLaws.lean`
+351. `mProfileAt_meet_at_admissible` — `TransformationLaws.lean`
+352. `full_recode_mProfileAt_G_zero` — `TransformationLaws.lean`
+353. `full_recode_mProfileAt_U_zero` — `TransformationLaws.lean`
+
 ### Status of mathematical necessity
 
 These proofs classify consequences of *declared structures*. In
@@ -918,10 +961,10 @@ alphabet or that the genetic code is mathematically inevitable.
 | Klein torsor | 23 |
 | Profiles and codon geometry | 48 |
 | 22/42 decomposition | 18 |
-| Recoding, trichotomy, and narrowing | 46 |
+| Recoding, trichotomy, narrowing, and transformation laws | 78 |
 | Complement transport, RNA/DNA transport, and tagging | 56 |
 | Pair classification and error control | 35 |
 | Amino acids, code, and charge | 34 |
 | Fano edit-reachability obstruction and frame stabilizers | 39 |
 | Capstone | 1 |
-| **Total** | **321** |
+| **Total** | **353** |
